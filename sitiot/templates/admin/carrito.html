@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Title</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS v5.2.1 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-light bg-light">
+        <div class="nav navbar-nav">
+            
+            <a class="nav-item nav-link active" href="/productos" aria-current="page">Productos</a>
+            
+        </div>
+    </nav>
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">
+                    Datos del Producto
+                </div>
+                <div class="card-body">
+
+                    <form action="/admin/carrito" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                          <label for="txtNombre" class="form-label">Nombre:</label>
+                          
+                          <input type="text" class="form-control form-control-sm" name="txtNombre" id="txtNombre" aria-describedby="helpId" placeholder="Escribe el nombre del Producto">
+                          <div id="suggestionsPopup" class="suggestions-popup"></div>
+                          
+                              
+                              <script>
+                                $(document).ready(function(){
+                                    $("#txtNombre").on('input', function(){
+                                        var query = $(this).val();
+                                        if(query.length > 0){
+                                            $.ajax({
+                                                url: '/buscar_producto',
+                                                method: 'POST',
+                                                data: {
+                                                    'query': query
+                                                },
+                                                success: function(data){
+                                                    var suggestions = '';
+                                                    data.forEach(function(item){
+                                                    suggestions += '<li>' + item + '</li>';
+                                                    });
+                                                    $("#suggestionsPopup").html(suggestions);
+
+                                                }
+
+                                            });
+                                        }
+                                    });
+                                });
+                            </script>
+                                
+
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="txtCantidad" class="form-label">Cantidad:</label>
+                            <input type="number"
+                              class="form-control form-control-sm" name="txtCantidad" id="txtCantidad" aria-describedby="helpId" placeholder="Escribe la cantidad del Producto">
+                          </div>
+                          
+                          
+                          <div class="mb-3">
+                            <label for="txtFecha" class="form-label">Fecha:</label>
+                            <input type="date"
+                              class="form-control form-control-sm" name="txtFecha" id="txtFecha" aria-describedby="helpId" placeholder="Selecciona la fecha del Producto">
+                          </div> 
+
+                          <div class="mb-3">
+                            <label for="txtPrecio" class="form-label">Precio:</label>
+                            <input type="number"
+                              class="form-control form-control-sm" name="txtPrecio" id="txtPrecio" aria-describedby="helpId" placeholder="Precio del Producto" readonly>
+                        </div>
+                         
+
+                        <button type="submit" class="btn btn-primary">Pedido</button>  
+
+
+                    </form>
+                    
+
+                </div>
+                <div class="card-footer text-muted">
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Borrar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for compra in compras %}
+                        <tr class="">
+                            <td>{{ compra[0] }}</td>
+                            <td>{{ compra[1] }}</td>
+                            <td>{{ compra[2] }}</td>
+                            <td>{{ compra[3] }}</td>
+                            <td>{{ compra[4] }}</td>
+
+                            <td>
+                                <form action="/admin/carrito/borrar" method="post">
+                                    <input value="{{ compra[0] }}" type="hidden" name="txtID" id="txtID">
+                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        
+                    </tbody>
+                </table>
+                <div class="mt-3">
+                    <form action="/admin/carrito/enviar-whatsapp" method="post">
+                        <button type="submit" class="btn btn-success">Enviar</button>
+                    </form>
+                </div>
+                
+            </div>                        
+        </div>        
+    </div>
+</div>
+<script>
+    $(document).ready(function(){
+    $("#txtNombre").on('input', function(){
+        var query = $(this).val();
+        if(query.length > 0){
+            $.ajax({
+                url: '/buscar_producto',
+                method: 'POST',
+                data: {
+                    'query': query
+                },
+                success: function(data){
+                    var suggestions = '';
+                    data.forEach(function(item){
+                        suggestions += '<li class="suggestion-item" data-price="' + item.precio + '">' + item.nombre + '</li>';
+                    });
+                    $("#suggestionsPopup").html(suggestions);
+                }
+            });
+        } else {
+            $("#suggestionsPopup").html('');
+        }
+    });
+
+    // Manejar el clic en una sugerencia
+    $("body").on("click", ".suggestion-item", function() {
+        var selectedName = $(this).text();
+        var selectedPrice = $(this).data('price');
+        $("#txtNombre").val(selectedName);
+        $("#txtPrecio").val(selectedPrice);  // Aquí llenamos el precio
+        $("#suggestionsPopup").html('');  // limpiamos las sugerencias
+    });
+});
+</script>
+
+{% include 'admin/pie.html' %} 

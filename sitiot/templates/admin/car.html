@@ -1,0 +1,79 @@
+{% include 'admin/cabecera.html' %}
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">
+                    Datos del Producto
+                </div>
+                <div class="card-body">
+
+                    <form action="/admin/carrito/guardar" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                          <label for="txtNombre" class="form-label">Nombre:</label>
+                          <input type="text"
+                              class="form-control form-control-sm" name="txtNombre" id="txtNombre" aria-describedby="helpId" placeholder="Escribe el nombre del Producto">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="txtCantidad" class="form-label">Cantidad:</label>
+                            <input type="number"
+                              class="form-control form-control-sm" name="txtCantidad" id="txtCantidad" aria-describedby="helpId" placeholder="Escribe la cantidad del Producto">
+                          </div>
+                          
+                          
+                          <div class="mb-3">
+                            <label for="txtFecha" class="form-label">Fecha:</label>
+                            <input type="date"
+                              class="form-control form-control-sm" name="txtFecha" id="txtFecha" aria-describedby="helpId" placeholder="Selecciona la fecha del Producto">
+                          </div> 
+
+                        <button type="submit" class="btn btn-primary">Pedido</button>  
+
+
+                    </form>
+                    
+
+                </div>
+                <div class="card-footer text-muted">
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for compra in compras %}
+                        <tr class="">
+                            <td>{{ compra[0] }}</td>
+                            <td>{{ compra[1] }}</td>
+                            <td>{{ compra[2] }}</td>
+                            <td>{{ compra[3] }}</td>
+
+                            <td>
+                                <form action="/admin/carrito/borrar" method="post">
+                                    <input value="{{ compra[0] }}" type="hidden" name="txtID" id="txtID">
+                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>                        
+        </div>        
+    </div>
+</div>
+{% include 'admin/pie.html' %} 
