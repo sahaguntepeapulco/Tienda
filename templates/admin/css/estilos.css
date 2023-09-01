@@ -1,0 +1,28 @@
+/* estilos.css */
+body {
+  font-family: Arial, sans-serif;
+}
+
+.suggestions-popup {
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+
+.suggestion-item {
+  background-color: #f8f8f8;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.suggestion-item:hover {
+  background-color: #e0e0e0;
+}
+
+.form-control[readonly] {
+  font-weight: bold;
+  font-size: 1.2em;
+}
