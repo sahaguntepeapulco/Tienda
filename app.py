@@ -181,6 +181,7 @@ def admin_productos_guardar():
     _nombre=request.form['txtNombre']    
     _archivo=request.files['txtImagen']
     _url=request.form['txtURL']
+    _precio = request.form['txtPrecio']
 
     tiempo= datetime.now()
     horaActual=tiempo.strftime('%Y%H%M%S')
@@ -189,8 +190,9 @@ def admin_productos_guardar():
         nuevoNombre=horaActual+"_"+_archivo.filename
         _archivo.save("templates/sitio/img/"+nuevoNombre)
 
-    sql="INSERT INTO `productos` (`id`, `nombre`, `imagen`, `url`) VALUES (NULL,%s,%s,%s);"
-    datos=(_nombre,nuevoNombre,_url)
+    sql = "INSERT INTO `productos` (`id`, `nombre`, `imagen`, `url`, `precio`) VALUES (NULL, %s, %s, %s, %s);"
+
+    datos = (_nombre, nuevoNombre, _url, _precio)
     conexion=mysql.connect()
     cursor=conexion.cursor()
     cursor.execute(sql,datos)
@@ -199,6 +201,7 @@ def admin_productos_guardar():
     print(_nombre)
     print(_url)
     print(_archivo)
+    print(_precio)
 
     print(request.form['txtNombre'])
     return redirect("/admin/productos")
