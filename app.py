@@ -17,11 +17,12 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 mysql = MySQL(app)
 
-app.config['MYSQLUSER'] = os.getenv("MYSQLUSER")
-app.config['MYSQLPASSWORD'] = os.getenv("MYSQLPASSWORD")
-app.config['MYSQLDATABASE'] = os.getenv("MYSQLDATABASE")
-app.config['MYSQLHOST'] = os.getenv("MYSQLHOST")
-app.config['MYSQLPORT'] = os.getenv("MYSQLPORT")
+app.config['MYSQL_DATABASE_USER'] = os.getenv("MYSQLUSER")
+app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv("MYSQLPASSWORD")
+app.config['MYSQL_DATABASE_DB'] = os.getenv("MYSQLDATABASE")
+app.config['MYSQL_DATABASE_HOST'] = os.getenv("MYSQLHOST")
+app.config['MYSQL_DATABASE_PORT'] = int(os.getenv("MYSQLPORT"))
+
 
 mysql.init_app(app)
 
