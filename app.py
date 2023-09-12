@@ -17,7 +17,6 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 mysql = MySQL(app)
 
-app.config['SECRET_KEY'] = os.getenv('mysecretkey')
 app.config['MYSQL_DATABASE_USER'] = os.getenv("MYSQLUSER")
 app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv("MYSQLPASSWORD")
 app.config['MYSQL_DATABASE_DB'] = os.getenv("MYSQLDATABASE")
