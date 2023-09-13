@@ -16,12 +16,11 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 
 mysql = MySQL(app)
-
-app.config['MYSQL_DATABASE_USER'] = os.getenv("MYSQLUSER")
-app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv("MYSQLPASSWORD")
-app.config['MYSQL_DATABASE_DB'] = os.getenv("MYSQLDATABASE")
-app.config['MYSQL_DATABASE_HOST'] = os.getenv("MYSQLHOST")
-app.config['MYSQL_DATABASE_PORT'] = int(os.getenv("MYSQLPORT"))
+app.config['SECRET_KEY'] = 'mysecretkey'
+app.config['MYSQL_DATABASE_HOST'] = 'bkpxwmspyhvlwbsedoix-mysql.services.clever-cloud.com'
+app.config['MYSQL_DATABASE_USER'] = 'ulp53jflirtiiq73'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'jGxGZjj8kmle7w7F5UWk'
+app.config['MYSQL_DATABASE_DB'] = 'bkpxwmspyhvlwbsedoix'
 
 
 mysql.init_app(app)
@@ -152,9 +151,14 @@ def enviar_whatsapp():
     global compras
     message = "Mis compras:\n\n"
     
+    total_suma = 0  # Esta variable almacena la suma total
+
     for compra in compras:
-        message += f"Nombre: {compra[1]}, Cantidad: {compra[2]}, Fecha: {compra[3]}\n"
+        message += f"Nombre: {compra[1]}, Cantidad: {compra[2]}, Fecha: {compra[3]}, Precio: {compra[4]}\n"
+        total_suma += float(compra[4])  # Suma el precio de cada compra al total
     
+    message += f"\nTotal de compras: ${total_suma}"  # Añade el total al mensaje
+
     # Formatear el mensaje para la URL de WhatsApp
     message = message.replace(" ", "%20").replace("\n", "%0A")
 
@@ -169,6 +173,16 @@ def enviar_whatsapp():
 
     # Redireccionar a WhatsApp
     return redirect(whatsapp_url)
+
+@app.route('/obtener_nombres_productos', methods=['GET'])
+def obtener_nombres_productos():
+    conexion = mysql.connect()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT nombre FROM productos")
+    nombres_productos = cursor.fetchall()
+    conexion.close()
+
+    return jsonify([nombre[0] for nombre in nombres_productos])
 
 
 
@@ -236,5 +250,3 @@ def admin_productos_borrar():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
