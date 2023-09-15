@@ -46,7 +46,7 @@
                               
                               <script>
                                 
-                                     $(document).ready(function(){
+                                  $(document).ready(function(){
     // Llenar el dropdown al cargar la página
     $.ajax({
         url: '/obtener_nombres_productos',
@@ -56,44 +56,36 @@
             data.forEach(function(nombre){
                 options += '<option value="' + nombre + '">' + nombre + '</option>';
             });
-            $("#txtNombre").html(options); // llenar el dropdown una vez
+            $("#txtNombre").html(options);
 
-            // Obtener el precio del primer producto:
             if(data.length > 0) {
-                $("#txtNombre").val(data[0]);
-                $("#txtNombre").trigger('change');
+                // Obtiene el precio del primer producto al cargar
+                obtenerPrecioProducto(data[0]);
             }
         }
     });
 
-    // Actualizar el precio cuando cambia el producto seleccionado
+    // Cuando cambia el producto seleccionado
     $("#txtNombre").on('change', function(){
-    var nombreSeleccionado = $(this).val();
-    if(nombreSeleccionado){
-        $.ajax({
-            url: '/buscar_producto',
-            method: 'POST',
-            data: {
-                'query': nombreSeleccionado
-            },
-            success: function(data){
-                if(data.length === 1 && data[0].nombre === nombreSeleccionado) {
-                    $("#txtPrecio").val(data[0].precio);
-                    $("#txtPrecio").attr("data-precio-original", data[0].precio); // Almacenar el precio original
-                } else {
-                    $("#txtPrecio").val(''); 
-                    $("#txtPrecio").attr("data-precio-original", ''); 
-                }
+        var nombreSeleccionado = $(this).val();
+        obtenerPrecioProducto(nombreSeleccionado);
+    });
+});
+
+function obtenerPrecioProducto(nombreSeleccionado) {
+    $.ajax({
+        url: '/buscar_producto',
+        method: 'POST',
+        data: { 'query': nombreSeleccionado },
+        success: function(data){
+            if(data.length === 1 && data[0].nombre === nombreSeleccionado) {
+                $("#txtPrecio").val(data[0].precio); // Nota: No se añade "$"
+            } else {
+                $("#txtPrecio").val(''); 
             }
-        });
-    } else {
-        $("#txtPrecio").val('');
-        $("#txtPrecio").attr("data-precio-original", ''); 
-    }
-});
-
-
-});
+        }
+    });
+}
 
                             </script>
                                 
