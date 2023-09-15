@@ -105,8 +105,8 @@ function obtenerPrecioProducto(nombreSeleccionado) {
 
                           <div class="mb-3">
                             <label for="txtPrecio" class="form-label">Precio:</label>
-                            <input type="number"
-                              class="form-control form-control-sm" name="txtPrecio" id="txtPrecio" aria-describedby="helpId" placeholder="Precio del Producto" readonly>
+                            <input type="text" class="form-control form-control-sm" name="txtPrecio" id="txtPrecio" aria-describedby="helpId" placeholder="Precio del Producto" readonly>
+
                         </div>
                          
 
@@ -177,57 +177,5 @@ function obtenerPrecioProducto(nombreSeleccionado) {
         </div>        
     </div>
 </div>
-<script>
-    $(document).ready(function(){
-        $("#txtNombre").on('change', function(){
-    var nombreSeleccionado = $(this).val();
-    if(nombreSeleccionado){
-        $.ajax({
-            url: '/buscar_producto',
-            method: 'POST',
-            data: {
-                'query': nombreSeleccionado
-            },
-            success: function(data){
-                if(data.length === 1 && data[0].nombre === nombreSeleccionado) { // Si hay una coincidencia exacta
-                    $("#txtPrecio").val("$" + data[0].precio);
-  // Llenar el precio
-                } else {
-                    $("#txtPrecio").val('');  // Limpiar el precio si no hay coincidencia exacta
-                }
-            }
-        });
-    } else {
-        $("#txtPrecio").val('');  // Limpiar el precio si el campo está vacío
-    }
-});
-
-$("#txtCantidad").on('input', function() {
-    let precioOriginal = parseFloat($("#txtPrecio").attr("data-precio-original")) || 0;
-    let cantidad = parseFloat($(this).val()) || 0;
-    let total = precioOriginal * cantidad;
-    $("#txtPrecio").val("$" + total.toFixed(2));
-
-});
-
-
-    });
-    function updateTotalPrice() {
-    let total = 0;
-    $("table tbody tr td:nth-child(5)").each(function() {
-        total += parseFloat($(this).text()) || 0;
-    });
-    $("#totalPriceCell").text("$" + total.toFixed(2));
-}
-
-
-$(document).ready(function() {
-    updateTotalPrice(); // Para calcular el total inicial
-});
-$("button[type=submit]").click(function() {
-    setTimeout(updateTotalPrice, 500); // Espera medio segundo antes de actualizar para dar tiempo a que la página se refresque
-});
-
-    </script>
     
 {% include 'admin/pie.html' %} 
