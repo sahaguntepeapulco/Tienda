@@ -95,6 +95,42 @@ function obtenerPrecioProducto(nombreSeleccionado) {
         }
     });
 }
+function actualizarTotal() {
+    var total = 0;
+    // Suma todos los precios en la tabla
+    $('table tbody tr').each(function() {
+        var precio = parseFloat($(this).find('td:eq(4)').text().replace('$', '')); // :eq(4) selecciona la quinta columna, recordando que las listas basadas en 0 empiezan en 0
+        if (!isNaN(precio)) total += precio; // Suma solo si el valor es un número
+    });
+    $('#totalPriceCell').text('$' + total.toFixed(2)); // Muestra el total con 2 decimales
+}
+// ... dentro de tu llamada AJAX que añade un producto...
+success: function(data){
+    // Asumiendo que data contiene el producto añadido...
+    // Añade el producto a la tabla (esto es solo un ejemplo básico, puedes adaptarlo según tus necesidades)
+    var newRow = `
+        <tr>
+            <td>${data.id}</td>
+            <td>${data.nombre}</td>
+            <td>${data.cantidad}</td>
+            <td>${data.fecha}</td>
+            <td>${data.precio}</td>
+            <td>...</td> <!-- Aquí iría tu formulario de eliminación y botón -->
+        </tr>
+    `;
+    $('table tbody').append(newRow);
+    actualizarTotal();
+}
+// ... dentro de tu llamada AJAX que elimina un producto...
+success: function(data){
+    // Asumiendo que data contiene el ID del producto eliminado...
+    $(`table tbody tr:contains("${data.id}")`).remove(); // Esto elimina la fila que contiene el ID del producto. Es un selector simple, pero es posible que necesites algo más sofisticado si tienes IDs similares en otras partes de tu tabla.
+    actualizarTotal();
+}
+$(document).ready(function() {
+    actualizarTotal();
+    // ... el resto de tu código ...
+});
 
 
                             </script>
