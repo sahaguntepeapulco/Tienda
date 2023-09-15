@@ -46,7 +46,7 @@
                               
                               <script>
                                 
-                                    $(document).ready(function(){
+                                     $(document).ready(function(){
     // Llenar el dropdown al cargar la página
     $.ajax({
         url: '/obtener_nombres_productos',
@@ -56,7 +56,13 @@
             data.forEach(function(nombre){
                 options += '<option value="' + nombre + '">' + nombre + '</option>';
             });
-            $("#txtNombre").html(options);
+            $("#txtNombre").html(options); // llenar el dropdown una vez
+
+            // Obtener el precio del primer producto:
+            if(data.length > 0) {
+                $("#txtNombre").val(data[0]);
+                $("#txtNombre").trigger('change');
+            }
         }
     });
 
@@ -192,7 +198,8 @@
             },
             success: function(data){
                 if(data.length === 1 && data[0].nombre === nombreSeleccionado) { // Si hay una coincidencia exacta
-                    $("#txtPrecio").val(data[0].precio);  // Llenar el precio
+                    $("#txtPrecio").val("$" + data[0].precio);
+  // Llenar el precio
                 } else {
                     $("#txtPrecio").val('');  // Limpiar el precio si no hay coincidencia exacta
                 }
@@ -207,7 +214,8 @@ $("#txtCantidad").on('input', function() {
     let precioOriginal = parseFloat($("#txtPrecio").attr("data-precio-original")) || 0;
     let cantidad = parseFloat($(this).val()) || 0;
     let total = precioOriginal * cantidad;
-    $("#txtPrecio").val(total.toFixed(2));
+    $("#txtPrecio").val("$" + total.toFixed(2));
+
 });
 
 
