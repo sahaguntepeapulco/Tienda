@@ -70,6 +70,14 @@
         var nombreSeleccionado = $(this).val();
         obtenerPrecioProducto(nombreSeleccionado);
     });
+
+    // Cuando cambias el valor en txtCantidad
+    $("#txtCantidad").on('input', function() {
+        let precioBase = parseFloat($("#txtPrecio").attr("data-precio-base")) || 0;
+        let cantidad = parseFloat($(this).val()) || 0;
+        let total = precioBase * cantidad;
+        $("#txtPrecio").val(total.toFixed(2)); // Actualiza el valor total
+    });
 });
 
 function obtenerPrecioProducto(nombreSeleccionado) {
@@ -79,13 +87,15 @@ function obtenerPrecioProducto(nombreSeleccionado) {
         data: { 'query': nombreSeleccionado },
         success: function(data){
             if(data.length === 1 && data[0].nombre === nombreSeleccionado) {
-                $("#txtPrecio").val(data[0].precio); // Nota: No se añade "$"
+                $("#txtPrecio").val(data[0].precio); 
+                $("#txtPrecio").attr("data-precio-base", data[0].precio);  // Guarda el precio base
             } else {
                 $("#txtPrecio").val(''); 
             }
         }
     });
 }
+
 
                             </script>
                                 
