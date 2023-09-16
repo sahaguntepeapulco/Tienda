@@ -1,29 +1,30 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 
 <head>
-  <title>Tienda</title>
+  <title>Title</title>
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" type="text/css" href="css/estilos.css"> 
 
   <!-- Bootstrap CSS v5.2.1 -->
-
-  <link rel="stylesheet" href="/css/bootstrap.min.css" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 
 </head>
 
 <body>
-    <nav class="navbar navbar-expand navbar-dark bg-primary">
+    <nav class="navbar navbar-expand navbar-light bg-light">
         <div class="nav navbar-nav">
-            <a class="nav-item nav-link active" href="/productos">Productos</a>
-            <a class="nav-item nav-link active" href="/nosotros">Nosotros</a>
+            
+            <a class="nav-item nav-link active" href="/productos" aria-current="page">Productos</a>
+            
         </div>
     </nav>
-    <div class="container">
-        <br/>
+<br>
 <div class="container">
     <div class="row">
         <div class="col-md-5">
@@ -37,63 +38,54 @@
                         <div class="mb-3">
                           <label for="txtNombre" class="form-label">Nombre:</label>
                           
-                          <select class="form-control form-control-sm" name="txtNombre" id="txtNombre">
-                            <!-- Las opciones serán llenadas dinámicamente por JavaScript -->
-                        </select>
-                        
+                          <input type="text" class="form-control form-control-sm" name="txtNombre" id="txtNombre" aria-describedby="helpId" placeholder="Escribe el nombre del Producto">
                           
                           
                               
                               <script>
-                                
                                 $(document).ready(function(){
-    // Llenar el dropdown al cargar la página
-    $.ajax({
-        url: '/obtener_nombres_productos',
-        method: 'GET',
-        success: function(data){
-            var options = '';
-            data.forEach(function(nombre){
-                options += '<option value="' + nombre + '">' + nombre + '</option>';
+    $("#txtNombre").on('input', function(){
+        var query = $(this).val();
+        if(query.length > 0){
+            $.ajax({
+                url: '/buscar_producto',
+                method: 'POST',
+                data: {
+                    'query': query
+                },
+                success: function(data){
+                    var suggestions = '';
+                    data.forEach(function(item){
+                        suggestions += '<li class="suggestion-item" data-price="' + item.precio + '">' + item.nombre + '</li>';
+                    });
+                    $("#suggestionsPopup").html(suggestions);
+                    if(suggestions) {
+                        $("#suggestionsPopup").show();
+                    } else {
+                        $("#suggestionsPopup").hide();
+                    }
+                }
             });
-            $("#txtNombre").html(options); // llenar el dropdown una vez
-
-            // Obtener el precio del primer producto:
-            if(data.length > 0) {
-                $("#txtNombre").val(data[0]);
-                $("#txtNombre").trigger('change');
-            }
+        } else {
+            $("#suggestionsPopup").hide();
         }
     });
 
+    // Manejar el clic en una sugerencia
+    $("body").on("click", ".suggestion-item", function() {
+        var selectedName = $(this).text();
+        var selectedPrice = $(this).data('price');
+        $("#txtNombre").val(selectedName);
+        $("#txtPrecio").val(selectedPrice);
+        $("#suggestionsPopup").hide();
+    });
 
-    // Actualizar el precio cuando cambia el producto seleccionado
-    $("#txtNombre").on('change', function(){
-    var nombreSeleccionado = $(this).val();
-    if(nombreSeleccionado){
-        $.ajax({
-            url: '/buscar_producto',
-            method: 'POST',
-            data: {
-                'query': nombreSeleccionado
-            },
-            success: function(data){
-                if(data.length === 1 && data[0].nombre === nombreSeleccionado) {
-                    $("#txtPrecio").val(data[0].precio);
-                    $("#txtPrecio").attr("data-precio-original", data[0].precio); // Almacenar el precio original
-                } else {
-                    $("#txtPrecio").val(''); 
-                    $("#txtPrecio").attr("data-precio-original", ''); 
-                }
-            }
-        });
-    } else {
-        $("#txtPrecio").val('');
-        $("#txtPrecio").attr("data-precio-original", ''); 
-    }
-});
-
-
+    // Ocultar las sugerencias al hacer clic fuera de ellas
+    $(document).on("click", function(event) {
+        if(!$(event.target).closest("#txtNombre, #suggestionsPopup").length) {
+            $("#suggestionsPopup").hide();
+        }
+    });
 });
 
                             </script>
@@ -163,13 +155,6 @@
                             </td>
                         </tr>
                         {% endfor %}
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                <td id="totalPriceCell">$0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                         
                     </tbody>
                 </table>
@@ -178,7 +163,7 @@
                     <form action="/admin/carrito/enviar-whatsapp" method="post">
                         <button type="submit" class="btn btn-success">Enviar</button>
                     </form>
-                    
+                    <button id="totalPriceBtn" class="btn btn-info">$0.00</button>
                 </div>
                 
                 
@@ -188,37 +173,33 @@
 </div>
 <script>
     $(document).ready(function(){
-        $("#txtNombre").on('change', function(){
-    var nombreSeleccionado = $(this).val();
-    if(nombreSeleccionado){
-        $.ajax({
-            url: '/buscar_producto',
-            method: 'POST',
-            data: {
-                'query': nombreSeleccionado
-            },
-            success: function(data){
-                if(data.length === 1 && data[0].nombre === nombreSeleccionado) { // Si hay una coincidencia exacta
-                    $("#txtPrecio").val("$" + data[0].precio);
-  // Llenar el precio
-                } else {
-                    $("#txtPrecio").val('');  // Limpiar el precio si no hay coincidencia exacta
-                }
+        $("#txtNombre").on('input', function(){
+            var query = $(this).val();
+            if(query.length > 0){
+                $.ajax({
+                    url: '/buscar_producto',
+                    method: 'POST',
+                    data: {
+                        'query': query
+                    },
+                    success: function(data){
+                        if(data.length === 1 && data[0].nombre === query) { // Si hay una coincidencia exacta
+                            $("#txtPrecio").val(data[0].precio);  // Llenar el precio
+                        } else {
+                            $("#txtPrecio").val('');  // Limpiar el precio si no hay coincidencia exacta
+                        }
+                    }
+                });
+            } else {
+                $("#txtPrecio").val('');  // Limpiar el precio si el campo está vacío
             }
         });
-    } else {
-        $("#txtPrecio").val('');  // Limpiar el precio si el campo está vacío
-    }
-});
-
-$("#txtCantidad").on('input', function() {
-    let precioOriginal = parseFloat($("#txtPrecio").attr("data-precio-original")) || 0;
-    let cantidad = parseFloat($(this).val()) || 0;
-    let total = precioOriginal * cantidad;
-    $("#txtPrecio").val("$" + total.toFixed(2));
-
-});
-
+        $("#txtCantidad").on('input', function() {
+            let precio = parseFloat($("#txtPrecio").val()) || 0;
+            let cantidad = parseFloat($(this).val()) || 0;
+            let total = precio * cantidad;
+            $("#txtPrecio").val(total.toFixed(2));
+        });
 
     });
     function updateTotalPrice() {
@@ -226,9 +207,8 @@ $("#txtCantidad").on('input', function() {
     $("table tbody tr td:nth-child(5)").each(function() {
         total += parseFloat($(this).text()) || 0;
     });
-    $("#totalPriceCell").text("$" + total.toFixed(2));
+    $("#totalPriceBtn").text("$" + total.toFixed(2));
 }
-
 
 $(document).ready(function() {
     updateTotalPrice(); // Para calcular el total inicial
