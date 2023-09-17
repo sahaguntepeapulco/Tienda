@@ -7,7 +7,9 @@ from flaskext.mysql import MySQL
 from datetime import datetime
 from flask import send_from_directory
 from dotenv import load_dotenv
-import os
+import uuid
+
+
 
 load_dotenv()
 
@@ -36,10 +38,9 @@ def buscar_producto():
     resultados = cursor.fetchall()
     conexion.close()
 
-    # Convertir resultados en una lista de diccionarios
-    productos = [{"nombre": result[0], "precio": str(result[1])} for result in resultados]
+    
+    return jsonify(resultados)
 
-    return jsonify(productos)
 
 
 @app.route('/')
@@ -120,69 +121,42 @@ def admin_productos():
 def admin_cabecera():
     return render_template("admin/cabecera.html")
 
-compras = [] # Esta lista almacenará temporalmente las compras.
 
 @app.route('/admin/carrito', methods=['GET', 'POST'])
 def admin_carrito():
+
+    if 'compras' not in session:
+        session['compras'] = []
+
+    conexion = mysql.connect()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT id, nombre, precio FROM productos")
+    productos = cursor.fetchall()
+    conexion.close()
+    nombres_productos = [producto[1] for producto in productos]
+
     if request.method == 'POST':
         nombre = request.form['txtNombre']
         cantidad = float(request.form['txtCantidad'])
         fecha = request.form['txtFecha']
         precio = request.form['txtPrecio']
-        
 
-        # Aquí asigno un ID de manera incremental basado en la longitud de la lista. En una base de datos real, el ID sería generado automáticamente.
-        compra_id = len(compras) + 1
-        compras.append((compra_id, nombre, cantidad, fecha, precio))
-        
-    return render_template('/admin/carrito.html', compras=compras)
+        id_generado = str(uuid.uuid4())
+        compra = (id_generado, nombre, cantidad, fecha, precio)
+        session['compras'].append(compra)
+        session.modified = True  # Asegurarte de que Flask sabe que la sesión ha cambiado
+
+    return render_template('/admin/carrito.html', nombres_productos=nombres_productos, productos=productos)
+
+
 
 @app.route('/admin/carrito/borrar', methods=['POST'])
 def admin_carrito_borrar():
-    compra_id = int(request.form['txtID'])
-    global compras
-    compras = [compra for compra in compras if compra[0] != compra_id]
+    compra_id = request.form['txtID']
+    session['compras'] = [compra for compra in session['compras'] if compra[0] != compra_id]
+    session.modified = True  # Notifica a Flask que la sesión ha cambiado
     return redirect('/admin/carrito')
 
-
-
-@app.route('/admin/carrito/enviar-whatsapp', methods=['POST'])
-def enviar_whatsapp():
-    global compras
-    message = "Mis compras:\n\n"
-    
-    total_suma = 0  # Esta variable almacena la suma total
-
-    for compra in compras:
-        message += f"Nombre: {compra[1]}, Cantidad: {compra[2]}, Fecha: {compra[3]}, Precio: {compra[4]}\n"
-        total_suma += float(compra[4])  # Suma el precio de cada compra al total
-    
-    message += f"\nTotal de compras: ${total_suma}"  # Añade el total al mensaje
-
-    # Formatear el mensaje para la URL de WhatsApp
-    message = message.replace(" ", "%20").replace("\n", "%0A")
-
-    # Número de teléfono al que quieres enviar el mensaje en formato internacional
-    telefono_destino = "+527751523417"
-    
-    # Crear la URL usando wa.me
-    whatsapp_url = f"https://wa.me/{telefono_destino}?text={message}"
-    
-    # Limpiar la lista de compras
-    compras = []
-
-    # Redireccionar a WhatsApp
-    return redirect(whatsapp_url)
-
-@app.route('/obtener_nombres_productos', methods=['GET'])
-def obtener_nombres_productos():
-    conexion = mysql.connect()
-    cursor = conexion.cursor()
-    cursor.execute("SELECT nombre FROM productos")
-    nombres_productos = cursor.fetchall()
-    conexion.close()
-
-    return jsonify([nombre[0] for nombre in nombres_productos])
 
 
 
@@ -250,3 +224,6 @@ def admin_productos_borrar():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+
