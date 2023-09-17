@@ -1,27 +1,21 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <title>Title</title>
+  <title>Tienda</title>
   <!-- Required meta tags -->
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
   <link rel="stylesheet" type="text/css" href="css/estilos.css"> 
-
-  <!-- Bootstrap CSS v5.2.1 -->
+  <!-- Bootstrap CSS v5.2.1 --> 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+  <link rel="stylesheet" href="/css/bootstrap.min.css" crossorigin="anonymous">
 </head>
-
 <body>
-    <nav class="navbar navbar-expand navbar-light bg-light">
+    <nav class="navbar navbar-expand navbar-dark bg-primary">
         <div class="nav navbar-nav">
-            
-            <a class="nav-item nav-link active" href="/productos" aria-current="page">Productos</a>
-            
+            <a class="nav-item nav-link active" href="/productos">Productos</a>
         </div>
     </nav>
 <br>
@@ -33,98 +27,151 @@
                     Datos del Producto
                 </div>
                 <div class="card-body">
-
                     <form action="/admin/carrito" method="post" enctype="multipart/form-data">
-                        <div class="mb-3">
+                        <div class="mb-3">                          
                           <label for="txtNombre" class="form-label">Nombre:</label>
-                          
-                          <input type="text" class="form-control form-control-sm" name="txtNombre" id="txtNombre" aria-describedby="helpId" placeholder="Escribe el nombre del Producto">
-                          
-                          
-                              
-                              <script>
-                                $(document).ready(function(){
-    $("#txtNombre").on('input', function(){
-        var query = $(this).val();
-        if(query.length > 0){
-            $.ajax({
-                url: '/buscar_producto',
-                method: 'POST',
-                data: {
-                    'query': query
-                },
-                success: function(data){
-                    var suggestions = '';
-                    data.forEach(function(item){
-                        suggestions += '<li class="suggestion-item" data-price="' + item.precio + '">' + item.nombre + '</li>';
-                    });
-                    $("#suggestionsPopup").html(suggestions);
-                    if(suggestions) {
-                        $("#suggestionsPopup").show();
-                    } else {
-                        $("#suggestionsPopup").hide();
-                    }
-                }
-            });
-        } else {
-            $("#suggestionsPopup").hide();
-        }
-    });
+                          <select class="form-control form-control-sm" name="txtNombre" id="txtNombre" onchange="updatePrice()">
+                            <option value="" selected>Seleccione un producto...</option>
+                            {% for producto in nombres_productos %}
+                                <option value="{{ producto }}">{{ producto }}</option>
+                            {% endfor %}
+                        </select>
 
-    // Manejar el clic en una sugerencia
-    $("body").on("click", ".suggestion-item", function() {
-        var selectedName = $(this).text();
-        var selectedPrice = $(this).data('price');
-        $("#txtNombre").val(selectedName);
-        $("#txtPrecio").val(selectedPrice);
-        $("#suggestionsPopup").hide();
-    });
-
-    // Ocultar las sugerencias al hacer clic fuera de ellas
-    $(document).on("click", function(event) {
-        if(!$(event.target).closest("#txtNombre, #suggestionsPopup").length) {
-            $("#suggestionsPopup").hide();
-        }
-    });
-});
-
-                            </script>
-                                
-
-                        </div>
+                        <script id="product-data" type="application/json">
+                            {{ productos|tojson }}
+                        </script>
                         
+                        <script>
+                            function updatePrice() {
+    const selector = document.getElementById("txtNombre");
+    const productName = selector.options[selector.selectedIndex].value;
+
+    // Si la opción seleccionada es vacía, restablecer el precio a vacío
+    if (!productName) {
+        document.getElementById("txtPrecio").value = "";
+        return;
+    }
+
+    const productDataElement = document.getElementById("product-data");
+    const products = JSON.parse(productDataElement.textContent);
+    
+    const product = products.find(p => p[1] === productName);
+    if (product) {
+        document.getElementById("txtPrecio").value = product[2];
+    }
+}
+
+function agregarProducto() {
+    const nombre = document.getElementById("txtNombre").value;
+    const cantidad = parseFloat(document.getElementById("txtCantidad").value); // Convertir a número
+    const fecha = document.getElementById("txtFecha").value;
+    const precio = parseFloat(document.getElementById("txtPrecio").value); // Convertir a número
+
+    const precioTotal = cantidad * precio; // Calculamos el precio total
+
+    const tabla = document.querySelector("tbody");
+
+    const newRow = tabla.insertRow();
+
+    newRow.insertCell(0).innerText = "ID"; // Deberás remplazar esto con un generador de ID.
+    newRow.insertCell(1).innerText = nombre;
+    newRow.insertCell(2).innerText = cantidad;
+    newRow.insertCell(3).innerText = fecha;
+    newRow.insertCell(4).innerText = precioTotal.toFixed(2); // Usamos toFixed(2) para mostrar sólo dos decimales
+
+    // Después de agregar el producto a la tabla, reseteamos los valores del formulario:
+    document.getElementById("txtNombre").selectedIndex = 0;
+    document.getElementById("txtCantidad").value = "";
+    document.getElementById("txtFecha").value = "";
+    document.getElementById("txtPrecio").value = "";
+
+    // Agregar el botón de eliminar. Esto es opcional, y lo puedes adaptar según lo necesites.
+    const eliminarCell = newRow.insertCell(5);
+    const eliminarBtn = document.createElement("button");
+    eliminarBtn.innerText = "Eliminar";
+    eliminarBtn.classList.add("btn", "btn-danger");
+    eliminarBtn.onclick = function() { eliminarProducto(newRow); };
+    eliminarCell.appendChild(eliminarBtn);
+
+    // Recalcular el total
+    calcularTotal();
+}
+
+
+function eliminarProducto(row) {
+    row.remove();
+}
+function calcularTotal() {
+    const precioCeldas = document.querySelectorAll("tbody tr td:nth-child(5)");
+    let total = 0;
+    precioCeldas.forEach(celda => {
+        total += parseFloat(celda.innerText);
+    });
+    document.getElementById("totalSuma").innerText = total.toFixed(2);
+}
+
+function eliminarProducto(row) {
+    row.remove();
+
+    calcularTotal();
+}
+
+// Esto calcula el total inicial cuando la página se carga por primera vez
+window.addEventListener("DOMContentLoaded", (event) => {
+    calcularTotal();
+});
+function enviarAWhatsapp() {
+    const numeroDestino = "527751523417";
+    const tableRows = document.querySelectorAll("tbody tr");  // Selecciona todas las filas del cuerpo de la tabla
+
+    let mensaje = "Mis compras:\n\n";
+
+    tableRows.forEach((row, rowIndex) => {
+        // Si es la última fila (la fila de totales), la saltamos
+        if(rowIndex === tableRows.length - 1) {
+            return;
+        }
+
+        const cells = row.querySelectorAll("td");
+        mensaje += `ID: ${cells[0].innerText}, `;
+        mensaje += `Nombre: ${cells[1].innerText}, `;
+        mensaje += `Cantidad: ${cells[2].innerText}, `;
+        mensaje += `Fecha: ${cells[3].innerText}, `;
+        mensaje += `Precio: ${cells[4].innerText}\n`;
+    });
+
+    const total = document.getElementById("totalSuma").innerText;
+    mensaje += `\nTotal de compras: $${total}`;
+
+    const encodedMessage = encodeURIComponent(mensaje);
+    window.open("https://wa.me/" + numeroDestino + "?text=" + encodedMessage, '_blank');
+}
+
+                        </script>
+
+                        </div>                        
                         <div class="mb-3">
                             <label for="txtCantidad" class="form-label">Cantidad:</label>
-                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" name="txtCantidad" id="txtCantidad" aria-describedby="helpId" placeholder="Escribe la cantidad del Producto"></div>
-                          
-                          
+                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" name="txtCantidad" id="txtCantidad" aria-describedby="helpId" placeholder="Escribe la cantidad del Producto"></div>                                                    
                           <div class="mb-3">
                             <label for="txtFecha" class="form-label">Fecha:</label>
                             <input type="date"
                               class="form-control form-control-sm" name="txtFecha" id="txtFecha" aria-describedby="helpId" placeholder="Selecciona la fecha del Producto">
                           </div> 
-
                           <div class="mb-3">
                             <label for="txtPrecio" class="form-label">Precio:</label>
                             <input type="number"
                               class="form-control form-control-sm" name="txtPrecio" id="txtPrecio" aria-describedby="helpId" placeholder="Precio del Producto" readonly>
-                        </div>
-                         
-
-                        <button type="submit" class="btn btn-primary">Añadir</button>  
-
-
-                    </form>
-                    
-
+                        </div>                         
+                        <button type="button" onclick="agregarProducto()" class="btn btn-primary">Añadir</button>
+  
+                    </form>                    
                 </div>
-                <div class="card-footer text-muted">
-                    
+                <div class="card-footer text-muted">                    
                 </div>
             </div>
         </div>
         <div class="col-md-7">
-
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead>
@@ -145,8 +192,6 @@
                             <td>{{ compra[2] }}</td>
                             <td>{{ compra[3] }}</td>
                             <td>{{ compra[4] }}</td>
-
-
                             <td>
                                 <form action="/admin/carrito/borrar" method="post">
                                     <input value="{{ compra[0] }}" type="hidden" name="txtID" id="txtID">
@@ -154,69 +199,23 @@
                                 </form>
                             </td>
                         </tr>
-                        {% endfor %}
-                        
+                        {% endfor %}   
                     </tbody>
-                </table>
-                
+                    <!-- Fila para mostrar el total -->
+                    <tr>
+                        <td colspan="4" class="text-end">Total:</td>
+                        <td id="totalSuma"></td>
+                        <td></td>
+                    </tr>
+                </table>              
                 <div class="mt-3 d-flex justify-content-between">
-                    <form action="/admin/carrito/enviar-whatsapp" method="post">
-                        <button type="submit" class="btn btn-success">Enviar</button>
-                    </form>
-                    <button id="totalPriceBtn" class="btn btn-info">$0.00</button>
-                </div>
-                
-                
+                    <button onclick="enviarAWhatsapp()" class="btn btn-success">Enviar</button>
+
+                </div>                                
             </div>                        
         </div>        
     </div>
 </div>
-<script>
-    $(document).ready(function(){
-        $("#txtNombre").on('input', function(){
-            var query = $(this).val();
-            if(query.length > 0){
-                $.ajax({
-                    url: '/buscar_producto',
-                    method: 'POST',
-                    data: {
-                        'query': query
-                    },
-                    success: function(data){
-                        if(data.length === 1 && data[0].nombre === query) { // Si hay una coincidencia exacta
-                            $("#txtPrecio").val(data[0].precio);  // Llenar el precio
-                        } else {
-                            $("#txtPrecio").val('');  // Limpiar el precio si no hay coincidencia exacta
-                        }
-                    }
-                });
-            } else {
-                $("#txtPrecio").val('');  // Limpiar el precio si el campo está vacío
-            }
-        });
-        $("#txtCantidad").on('input', function() {
-            let precio = parseFloat($("#txtPrecio").val()) || 0;
-            let cantidad = parseFloat($(this).val()) || 0;
-            let total = precio * cantidad;
-            $("#txtPrecio").val(total.toFixed(2));
-        });
-
-    });
-    function updateTotalPrice() {
-    let total = 0;
-    $("table tbody tr td:nth-child(5)").each(function() {
-        total += parseFloat($(this).text()) || 0;
-    });
-    $("#totalPriceBtn").text("$" + total.toFixed(2));
-}
-
-$(document).ready(function() {
-    updateTotalPrice(); // Para calcular el total inicial
-});
-$("button[type=submit]").click(function() {
-    setTimeout(updateTotalPrice, 500); // Espera medio segundo antes de actualizar para dar tiempo a que la página se refresque
-});
-
-    </script>
-    
+   
 {% include 'admin/pie.html' %} 
+
