@@ -16,14 +16,13 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
-
 mysql = MySQL(app)
-app.config['SECRET_KEY'] = 'mysecretkey'
-app.config['MYSQL_DATABASE_HOST'] = 'bkpxwmspyhvlwbsedoix-mysql.services.clever-cloud.com'
-app.config['MYSQL_DATABASE_USER'] = 'ulp53jflirtiiq73'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'jGxGZjj8kmle7w7F5UWk'
-app.config['MYSQL_DATABASE_DB'] = 'bkpxwmspyhvlwbsedoix'
 
+app.config['MYSQL_DATABASE_USER'] = os.getenv("MYSQLUSER")
+app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv("MYSQLPASSWORD")
+app.config['MYSQL_DATABASE_DB'] = os.getenv("MYSQLDATABASE")
+app.config['MYSQL_DATABASE_HOST'] = os.getenv("MYSQLHOST")
+app.config['MYSQL_DATABASE_PORT'] = int(os.getenv("MYSQLPORT"))
 
 mysql.init_app(app)
 
