@@ -178,6 +178,25 @@ def admin_productos_guardar():
         nuevoNombre=horaActual+"_"+_archivo.filename
         _archivo.save("templates/sitio/img/"+nuevoNombre)
 
+        # Ahora guarda en GitHub
+        with open("templates/sitio/img/"+nuevoNombre, 'rb') as file:
+            content = file.read()
+
+        token = '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'
+        g = Github(token)
+        repo = g.get_repo("sahaguntepeapulco/Tienda")
+
+        # Intenta borrar el archivo si ya existe (opcional)
+        try:
+            repo.get_contents("templates/sitio/img/"+nuevoNombre).delete("remove old image")
+        except:
+            pass
+
+        # Ahora crea el nuevo archivo
+        repo.create_file("templates/sitio/img/"+nuevoNombre, "upload new image", content)
+
+
+
     sql = "INSERT INTO `productos` (`id`, `nombre`, `imagen`, `url`, `precio`) VALUES (NULL, %s, %s, %s, %s);"
 
     datos = (_nombre, nuevoNombre, _url, _precio)
@@ -224,6 +243,3 @@ def admin_productos_borrar():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
-
