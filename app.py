@@ -89,7 +89,7 @@ def admin_login_post():
     print(_usuario)
     print(_password)
 
-    if _usuario=="admin" and _password=="123456":
+    if _usuario=="admin" and _password=="123456$":
         session["login"]=True
         session["usuario"]="Administrador"
         return redirect("/admin")
